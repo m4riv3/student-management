@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>API Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" media="screen" href="//netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
+            <form id="formGet">
+                <legend>GET</legend>
+                <div class="form-group">
+                    <label for="">GET</label>
+                    <input type="text" class="form-control" id="getID" required="required" placeholder="Get by ID">
+                </div>
+                <button type="button" class="btn btn-primary" id="btnGet" onclick="getData()">Show</button>
+            </form>
+
+        </div>
+
+        <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
+
+            <form id="formPost">
+                <legend>POST</legend>
+
+                <div class="form-group">
+                    <label for="">POST</label>
+                    <input type="text" class="form-control" id="id" placeholder="ID" required="required">
+                    <input type="text" class="form-control" id="name" placeholder="Name" required="required">
+                    <input type="text" class="form-control" id="score" placeholder="Score" required="required">
+                    <input type="text" class="form-control" id="studentID" placeholder="studentID" required="required">
+                </div>
+                <button type="button" class="btn btn-primary" id="btnPost" onclick="postData()">Create</button>
+            </form>
+
+        </div>
+
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+            <p id="data">here</p>
+        </div>
+
+    </div>
+        <script src="js/main.js"></script>
+
+</body>
+</html>

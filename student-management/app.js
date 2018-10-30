@@ -1,0 +1,10 @@
+const express = require('express');
+const app = express();
+const db = require('./db');
+const cors = require('cors');
+const Usercontroller = require('./controller/UserController');
+app.use('/api', Usercontroller);
+app.use(express.static('public'));
+app.use(cors());
+app.options('*', cors());
+module.exports = app;

@@ -1,0 +1,52 @@
+const mongoose = require('mongoose');
+const Contact = require('./contact');
+const bcrypt = require('bcryptjs');
+const UserSchema = new mongoose.Schema({
+    student_id: { type: Number, required: true, unique: 1 },
+    name: String,
+    class: { type: String, required: true },
+    birth: { type: Date, default: Date.now },
+    contact: { type: mongoose.SchemaTypes.ObjectId, ref: 'contact' },
+    score: { type: mongoose.SchemaTypes.ObjectId, ref: 'scores' },
+    roles: { type: String, default: 'user' },
+    rights: { type: Array, default: ['notification, user-profile, time-table', 'learning-result'] },
+    password: { type: String }
+});
+const User = module.exports = mongoose.model('users', UserSchema);
+module.exports = {
+    listUser: (filter, callback) => {
+        User.find(filter, callback);
+    },
+    createUser: (newUser) => {
+        return new Promise((resolve, reject) => {
+            bcrypt.genSalt(10, (err, salt) => {
+                bcrypt.hash(newUser.password, salt, (err, hash) => {
+                    newUser.password = hash;
+                    if (err) reject(err);
+                    else {
+                        resolve(User.create(newUser));
+                    }
+                })
+            })
+        })
+    },
+    getUserByStdID: (username) => {
+        return new Promise((resolve, reject) => {
+            User.findOne({ student_id: username }, (err, user) => {
+                if (err) reject(err);
+                else {
+                    resolve(user);
+                };
+            })
+        })
+    },
+    comparePassword: (candidatePassword, hash) => {
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
+                if (err) reject(err);
+                resolve(isMatch);
+            })
+        })
+
+    }
+}

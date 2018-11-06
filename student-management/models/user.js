@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Contact = require('./contact');
 const bcrypt = require('bcryptjs');
 const UserSchema = new mongoose.Schema({
-    student_id: { type: Number, required: true, unique: 1 },
+    username: { type: String, required: true, unique: 1 },
     name: String,
     class: { type: String, required: true },
     birth: { type: Date, default: Date.now },
@@ -32,7 +32,7 @@ module.exports = {
     },
     getUserByStdID: (username) => {
         return new Promise((resolve, reject) => {
-            User.findOne({ student_id: username }, (err, user) => {
+            User.findOne({ username: username }, (err, user) => {
                 if (err) reject(err);
                 else {
                     resolve(user);
@@ -47,6 +47,13 @@ module.exports = {
                 resolve(isMatch);
             })
         })
-
+    },
+    findOnlyOne: (filter) => {
+        return new Promise((resolve, reject) => {
+            User.findOne(filter, (err, user) => {
+                if (err) reject(err);
+                else resolve(user);
+            })
+        })
     }
 }

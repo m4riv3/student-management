@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const config = require('../config');
+const config = require('../config/config');
 
 exports.isAuth = (req, res, next) => {
     let token = req.query.token == null ? req.headers['x-access-token'] : req.query.token;
@@ -11,7 +11,9 @@ exports.isAuth = (req, res, next) => {
                 console.log(`decode ${payload.username}`);
                 User.findOnlyOne({ 'username': payload.username })
                     .then(user => {
-                        req.body.username = user.username;
+                        req.body.username = user.username;//next route using body.username = user.username;
+                        req.body.token = token;
+                        req.body.roles = user.roles;
                         next();
                     })
                     .catch(err => {
@@ -23,4 +25,10 @@ exports.isAuth = (req, res, next) => {
     else {
         res.json({ message: 'Token error' });
     }
+}
+exports.isAdmin = (req, res, next) => {
+    console.log(req.body.roles);//loi bao mat
+    if (req.body.roles == 'admin')
+        next();
+    else res.json({ message: 'You dont have permission' });
 }

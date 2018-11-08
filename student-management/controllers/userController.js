@@ -1,7 +1,20 @@
 const User = require('../models/user');
-const config = require('../config');
+const config = require('../config/config');
 const Contact = require('../models/contact');
 const jwt = require('jsonwebtoken');
+const blacklist = require('express-jwt-blacklist');
+const passport = require('passport');
+const redis = require('redis');
+
+
+const client = redis.createClient(6379, config.host);
+client.on('connect', () => {
+    console.log('redis client connected');
+})
+client.on('error', (err) => {
+    console.error('Error: No connection');
+})
+
 
 
 exports.register = (req, res) => {
@@ -38,18 +51,41 @@ exports.login = (req, res) => {
     const password = req.body.password;
     User.getUserByStdID(username)
         .then(user => {
-            User.comparePassword(password, user.password)
-                .then(isMatch => {
-                    const payload = { username: user.username };
-                    let token = jwt.sign(payload, config.jwtSecret, { expiresIn: 60*10 });
-                    console.log(`token : ${token}`);
-                    let jsRes = { access_token: token};
-                    res.json(jsRes);
-                })
-                .catch(err => {
-                    res.send(json(err))
-                })
+            if (user) {
+                User.comparePassword(password, user.password)
+                    .then(isMatch => {
+                        if (isMatch) {
+                            const payload = {
+                                username: user.username,
+                                roles: user.roles
+                            };
+                            let token = jwt.sign(payload, config.jwtSecret, { expiresIn: 60 * 5 });
+                            console.log(`token : ${token}`);
+                            let jsRes = { user: user.username, access_token: token };
+                            res.json(jsRes);
+
+                        }
+                        else {
+                            res.json({ 'message': 'Invalid Password' });
+                        }
+                    })
+                    .catch(err => {
+                        res.send(json(err))
+                    })
+            }
+            else {
+                res.json({ 'message': 'Invalid User' });
+            }
         })
+}
+
+exports.logout = (req, res) => {
+    //redis cache
+    client.setex({ 'token': req.body.token }, 300, JSON.stringify({ 'message': 'black list token', 'token': req.body.token }), (err, result) => {
+        if (err) return res.json(err);
+        else res.json({ 'message': 'token is added in blacklist' });
+    });
+    res.send({ message: req.body.username });
 }
 exports.listall = (req, res) => {
     User.listUser({}, (err, result) => {
@@ -60,6 +96,14 @@ exports.listall = (req, res) => {
     })
 }
 exports.users = (req, res) => {
+    client.get({ 'token': req.body.token }, (err, result) => {
+        if (err) res.send(JSON.stringify(err));
+        else {
+            if (result) {
+                return res.json({ 'message': 'You dont have permission, invalid token' });
+            }
+        }
+    })
     User.findOnlyOne({ username: req.body.username })
         .then(user => {
             res.send(user);

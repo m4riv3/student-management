@@ -1,5 +1,6 @@
 module.exports = {
     'jwtSecret': 'testttttt',
     'uri': 'mongodb://localhost:27017/class',
-    'host': '10.41.177.73'//192.168.1.17
+    // 'uri':'mongodb+srv://thupx:*101#abc@cluster0-wd6gd.gcp.mongodb.net/students',
+    'host': '10.41.177.96'
 };

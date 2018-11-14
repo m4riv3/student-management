@@ -15,7 +15,13 @@ client.on('error', (err) => {
     console.error('Error: No connection');
 })
 
-
+function checkValidToken(user) {
+    return new Promise((resolve, reject) => {
+        client.get(`token${user}`, (error, result) => {
+            error == null ? resolve(result) : reject(error);
+        })
+    })
+}
 
 exports.register = (req, res) => {
     console.log(`${req.method} ${req.baseUrl}`);
@@ -45,7 +51,6 @@ exports.register = (req, res) => {
 }
 
 exports.login = (req, res) => {
-    console.log('headers:' + req.headers.authorization);
     console.log(`User ${req.body.username} login`);
     const username = req.body.username;
     const password = req.body.password;
@@ -60,10 +65,8 @@ exports.login = (req, res) => {
                                 roles: user.roles
                             };
                             let token = jwt.sign(payload, config.jwtSecret, { expiresIn: 60 * 5 });
-                            console.log(`token : ${token}`);
                             let jsRes = { user: user.username, access_token: token };
                             res.json(jsRes);
-
                         }
                         else {
                             res.json({ 'message': 'Invalid Password' });
@@ -80,34 +83,49 @@ exports.login = (req, res) => {
 }
 
 exports.logout = (req, res) => {
-    //redis cache
-    client.setex({ 'token': req.body.token }, 300, JSON.stringify({ 'message': 'black list token', 'token': req.body.token }), (err, result) => {
-        if (err) return res.json(err);
-        else res.json({ 'message': 'token is added in blacklist' });
+    const user = req.body.username;
+    const token = req.body.token;
+    client.setex(`token${user}`, 300, token , (err, result) => {
+        if (err) res.json(err);
+        else res.status(200).json({ 'message': `Token of user ${user} is added in blacklist` });
     });
-    res.send({ message: req.body.username });
-}
-exports.listall = (req, res) => {
-    User.listUser({}, (err, result) => {
-        if (err) res.send(JSON.stringify(err));
-        else {
-            return res.send(JSON.stringify(result));
-        }
-    })
 }
 exports.users = (req, res) => {
-    client.get({ 'token': req.body.token }, (err, result) => {
-        if (err) res.send(JSON.stringify(err));
-        else {
-            if (result) {
+    const token = req.body.token || req.headers['x-access-token'];
+    const user = req.body.username;
+    checkValidToken(user)
+        .then(result => {
+            if (result === token) {
                 return res.json({ 'message': 'You dont have permission, invalid token' });
             }
-        }
+            else {
+                User.listUser({}, (err, result) => {
+                    if (err) res.send(JSON.stringify(err));
+                    else {
+                        return res.send(JSON.stringify(result));
+                    }
+                })
+            }
     })
-    User.findOnlyOne({ username: req.body.username })
-        .then(user => {
-            res.send(user);
-        })
-        .catch(err => console.log(err));
-
 }
+exports.user = (req, res) => {
+    const token = req.body.token || req.headers['x-access-token'];
+    const user = req.body.username;
+    checkValidToken(user)
+        .then(result => {
+            if (result === token) {
+                return res.json({ 'message': 'You dont have permission, invalid token' });
+            }
+            else {
+                User.findOnlyOne({ username: req.body.username })
+                    .then(user => {
+                        res.send(user);
+                    })
+                    .catch(err => console.log(err));
+            }
+        })
+        .catch(err => {
+            res.json(err);
+    })
+}
+

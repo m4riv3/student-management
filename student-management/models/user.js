@@ -12,6 +12,7 @@ const UserSchema = new mongoose.Schema({
     rights: { type: Array, default: ['notification, user-profile, time-table', 'learning-result'] },
     password: { type: String }
 });
+UserSchema.index({ username: 1, roles: 1 });
 const User = module.exports = mongoose.model('users', UserSchema);
 module.exports = {
     listUser: (filter, callback) => {

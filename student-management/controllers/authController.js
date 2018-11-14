@@ -8,7 +8,6 @@ exports.isAuth = (req, res, next) => {
         jwt.verify(token, config.jwtSecret, (err, payload) => {
             if (err) res.status(404).json({ message: 'Authenticate Error' });
             else {
-                console.log(`decode ${payload.username}`);
                 User.findOnlyOne({ 'username': payload.username })
                     .then(user => {
                         req.body.username = user.username;//next route using body.username = user.username;
